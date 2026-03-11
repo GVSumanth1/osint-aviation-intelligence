@@ -6,7 +6,7 @@ This section describes the methodology used to analyze open-source crisis event 
 
 ## 3.1 Data Collection
 
-### 3. 1.1 Crisis Event Data (GDELT)
+### 3.1.1 Crisis Event Data (GDELT)
 
 We obtained crisis event data from the **GDELT Events 2.0 database** (https://www.gdeltproject.org/), which provides structured representations of global news events using the Conflict and Mediation Event Observations (CAMEO) ontology. The dataset was pre-filtered from raw GDELT exports (approximately 30 million global events) to aviation-related crisis events only, stored in `gdelt_crisis_aviation_clean.csv` (~5MB) for efficient Google Colab execution.
 
@@ -27,23 +27,30 @@ The raw dataset includes 58 columns per event, with key fields being: `GlobalEve
 
 This filtering reduced the dataset from 30M to approximately **500,000 crisis events** (98.3% reduction).
 
-**Aviation Relevance Filtering:** To ensure domain specificity, crisis events were further filtered using keyword matching across `Actor1Name`, `Actor2Name`, and `ActionGeo_Fullname` fields. The aviation keyword set included: *airport, airline, flight, aviation, runway, terminal, plane, jet, air traffic, ATC, Boeing, Airbus*. This step reduced the dataset to **11,113 aviation-related crisis events** (additional 97.8% reduction).
+**Aviation Relevance Filtering:** To ensure domain specificity, crisis events were further filtered using keyword matching across `Actor1Name`, `Actor2Name`, and `ActionGeo_Fullname` fields. The aviation keyword set included: *airport, airline, flight, aviation, runway, terminal, plane, jet, air traffic, ATC, Boeing, Airbus*. This step reduced the dataset to **10,122 aviation-related crisis events** (additional 97.8% reduction).
 
 **Final Dataset Characteristics:**
 - **File:** `gdelt_crisis_aviation_clean.csv`
-- **Total records:** 11,113 crisis events
+- **Total records:** 10,122 crisis events (loaded), 8,541 events after preprocessing
 - **File size:** ~5MB (optimized for Google Colab upload)
-- **Time period:** January 1 - December 31, 2024
+- **Time period:** January 2024 - December 2024
 - **Temporal granularity:** Minute-level timestamps (converted to daily for analysis)
-- **Overall noise reduction:** 99.96% (30M → 11K events)
-- **Pre-filtering approach:** Data pre-filtered before analysis to eliminate need for raw GDELT processing in Google Colab
+- **Overall noise reduction:** 99.96% (30M → 10K events)
+- **Pre-filtering approach:** Data pre-filtered offline before Colab analysis to eliminate need for raw GDELT processing in Google Colab environment
 
 ### 3.1.2 Flight Cancellation Data
 
-We utilized **pre-aggregated flight cancellation data** from the Bureau of Transportation Statistics (BTS) On-Time Performance Database (https://www.transtats.bts.gov/). The dataset was pre-processed from raw BTS records (7,079,081 flight records) into daily aggregated statistics optimized for Google Colab execution.
+We utilized **pre-aggregated flight cancellation data** from the Bureau of Transportation Statistics (BTS) On-Time Performance Database (https://www.transtats.bts.gov/). The dataset was pre-processed from raw BTS records into daily aggregated statistics optimized for Google Colab execution.
+
+**Data Source and Processing:**
+- **Source:** Bureau of Transportation Statistics (BTS) On-Time Performance Database
+- **Raw Data:** 7,079,081 individual flight records from 2024
+- **Raw File Size:** ~1.2GB (impractical for Google Colab upload)
+- **Pre-aggregation:** Raw flight records aggregated to daily statistics offline
+- **Output File:** `flight_cancellations_daily_2024.csv`
+- **Optimized File Size:** ~20KB (99.98% size reduction while preserving analytical value)
 
 **Pre-Aggregated Dataset Characteristics:**
-- **Source:** `flight_cancellations_daily_2024.csv` (pre-aggregated from BTS On-Time Performance records)
 - **Time Period:** January 1, 2024 – December 31, 2024 (366 days - full year, leap year)
 - **Records:** 366 daily aggregated records (one per day)
 - **File Size:** ~20KB (vs. 1.2GB raw data - optimized for Google Colab upload)
@@ -55,31 +62,37 @@ We utilized **pre-aggregated flight cancellation data** from the Bureau of Trans
   - **cancellation_rate:** Percentage of cancelled vs. scheduled flights
   - **is_spike:** Binary indicator for cancellation rate spikes (> 90th percentile)
   
-**Cancellation Rate Distribution:**
-- **Mean:** ~2.5%
-- **Standard Deviation:** ~1.8%
-- **Range:** 0.8% – 12.5%
-- **90th Percentile (High Cancellation Threshold):** ~5.8%
-- **Peak Cancellation Days:** Typically align with severe weather events or operational disruptions
+**Cancellation Statistics (Full Year 2024):**
+- **Total flights analyzed:** 7,079,081
+- **Total cancelled flights:** 96,315
+- **Overall cancellation rate:** 1.36%
+- **Mean daily cancellation rate:** ~1.35%
+- **Standard Deviation:** ~2.29%
+- **Range:** 0.2% – 18.4%
+- **90th Percentile (Spike Threshold):** ~3.5%
+- **Spike days identified:** 9 days (2.5% of all days)
 
 **Data Validation:**
 - Cross-referenced against DOT Aviation Consumer Protection Division records
-- Verified temporal consistency (no missing dates)
-- Outlier analysis conducted for cancellation rates >10%
-- Daily aggregates provide sufficient temporal resolution for lagged correlation analysis
+- Verified temporal consistency (no missing dates, complete leap year coverage)
+- Outlier analysis conducted for cancellation rates exceeding 10%
+- Daily aggregates provide sufficient temporal resolution for lagged correlation analysis (0-3 days)
+- All 12 months verified with data (Jan-Dec 2024)
 
 **Temporal Coverage Alignment:**
-- GDELT crisis events span the full year (Jan 1 - Dec 31, 2024)
-- Flight cancellation data covers full year (Jan 1 - Dec 31, 2024 - 366 days)
-- **Correlation analysis uses full year overlap:** January 1 - December 31, 2024 (366 days)
+- GDELT crisis events: January 2024 - December 2024 (10,122 events loaded)
+- Flight cancellation data: January 1 - December 31, 2024 (366 days - full year)
+- **Analysis period:** Full year 2024 (366 days with crisis signals merged)
+- **Overlap:** 366 days used for correlation analysis (crisis events filled with 0 for days without detected events)
 
 **Google Colab Optimization:**
-- Using pre-filtered `gdelt_crisis_aviation_clean.csv` (5MB) instead of raw GDELT exports (multi-GB)
-- Using pre-aggregated `flight_cancellations_daily_2024.csv` (20KB) instead of raw flight data (1.2GB)
-- **Total data upload size:** ~5.02MB (enables fast upload even on limited bandwidth)
-- No large-scale data processing required in Colab session - datasets are analysis-ready
+- Pre-filtered `gdelt_crisis_aviation_clean.csv` (~5MB) vs. raw GDELT exports (multi-GB)
+- Pre-aggregated `flight_cancellations_daily_2024.csv` (~20KB) vs. raw flight data (1.2GB)
+- **Total data upload size:** ~5.02MB (fast upload on free Colab tier)
+- **Processing efficiency:** No large-scale aggregation required in Colab session
+- **Analysis-ready:** Datasets arrive preprocessed, enabling immediate classification and correlation analysis
 
-This full-year window provides robust statistical power for lagged correlation analysis across all seasons, enabling detection of both short-term and long-term crisis-cancellation patterns using validated real-world flight operations data.
+This full-year window provides robust statistical power for lagged correlation analysis across all seasons, capturing both routine operations and major disruption events throughout 2024.
 
 ---
 
@@ -123,14 +136,12 @@ Duplicate events (same Day, EventRootCode, Actor1Name, Actor2Name, ActionGeo_Ful
 **Preprocessing Summary (Pre-processing Stage):**
 - **Input:** 30M raw GDELT events (downloaded from GDELT Project)
 - **After crisis filtering:** 500K events (CAMEO codes 14, 17, 18, 19, 20)
-- **After aviation filtering:** 11,113 events (keyword matching)
-- **After text validity + dedup:** **10,847 final events**
-- **Overall noise reduction:** 99.96%
+- **After aviation filtering:** 10,122 events (keyword matching)
+- **After text validity + dedup:** **8,541 final events**
+- **Overall noise reduction:** 99.97%
 - **Output file:** `gdelt_crisis_aviation_clean.csv` (~5MB, ready for Colab upload)
 
 **Note:** These preprocessing steps were performed offline. The Colab notebook loads `gdelt_crisis_aviation_clean.csv` directly, bypassing raw data processing.
-
-### 3.2.2 Flight Cancellation Preprocessing (Executed in Colab)
 
 ### 3.2.2 Flight Cancellation Preprocessing (Executed in Colab)
 
@@ -168,39 +179,60 @@ Classification employed a **zero-shot learning** approach using instruction-tune
 
 ### 3.3.1 Model Configuration
 
-**Model:** We used **Phi-3.5-mini-instruct** (3.8B parameters, FP16 precision, ~7.5GB), a state-of-the-art instruction-tuned large language model developed by Microsoft Research. The model was accessed via the `transformers` library (HuggingFace) with standard PyTorch inference for efficient GPU execution and deterministic output generation.
+**Model:** We used **Mistral-Nemo-Instruct-2407** (12B parameters, Q5_K_M quantization, ~7.5GB), a state-of-the-art instruction-tuned large language model from Mistral AI. The model was accessed via `llama-cpp-python` with CUDA acceleration and grammar-constrained generation (GBNF) for structured JSON output, ensuring deterministic and reproducible classification.
 
-**Phi-3.5 Mini Selection Rationale:**
-1. **Reproducibility:** Supports explicit specification of model checkpoint, random seed, and temperature parameters—meeting academic standards for replicable research
-2. **Simplified deployment:** Standard HuggingFace Transformers framework eliminates complex compilation requirements (no custom GGUF quantization or grammar constraints needed)
+**Mistral-Nemo Selection Rationale:**
+1. **Reproducibility:** Supports explicit specification of model checkpoint, random seed, and temperature parameters with deterministic inference—meeting academic standards for replicable research
+2. **Grammar-constrained generation (GBNF):** Uses formal grammar specification to enforce valid JSON output structure, eliminating parsing errors and ensuring consistent structured responses
 3. **Instruction following:** Fine-tuned on instruction datasets with strong performance on classification tasks, enabling reliable categorization via natural language prompts without additional training
-4. **Computational efficiency:** 3.8B parameters with FP16 precision enables faster inference (~1-3 seconds per event on GPU) compared to larger models while maintaining classification accuracy
-5. **Strong reasoning capabilities:** Despite compact size, demonstrates nuanced understanding of crisis event semantics with explicit reasoning generation
+4. **Computational efficiency:** Q5_K_M quantization (5-bit) reduces model size to ~7.5GB while maintaining >95% of full precision performance; inference speed ~2-4 seconds per event on GPU
+5. **Superior reasoning capabilities:** 12B parameters provide nuanced understanding of crisis event semantics with detailed, explainable reasoning generation compared to smaller models
+6. **Verified deployment:** Implementation validated through peer testing (January 6 Capitol Riots sentiment analysis project), confirming reliable performance on crisis event classification tasks
+7. **GPU compatibility:** Runs efficiently on free Google Colab T4 GPUs with CUDA acceleration, enabling practical analysis within resource constraints
 
 **Implementation:**
 ```python
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
+from llama_cpp import Llama, LlamaGrammar
+import json
+import os
 
-# Load model with FP16 precision
-tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3.5-mini-instruct", trust_remote_code=True)
-model = AutoModelForCausalLM.from_pretrained(
-    "microsoft/Phi-3.5-mini-instruct",
-    torch_dtype=torch.float16,
-    device_map="auto",
-    trust_remote_code=True
+# Model stored in Google Drive for persistence across sessions
+MODEL_FILENAME = 'Mistral-Nemo-Instruct-2407-Q5_K_M.gguf'
+MODEL_DRIVE_PATH = '/content/drive/MyDrive/OSINT_files/Mistral-Nemo-Instruct-2407-Q5_K_M.gguf'
+
+# Define JSON grammar (GBNF) for structured output
+json_grammar_str = r"""
+root   ::= object
+value  ::= object | array | string | number | ("true" | "false" | "null") ws
+object ::= "{" ws (string ":" ws value ("," ws string ":" ws value)*)? "}" ws
+array  ::= "[" ws (value ("," ws value)*)? "]" ws
+string ::= "\"" ([^"\\] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]))* "\"" ws
+number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
+ws ::= ([ \t\n] ws)?
+"""
+grammar = LlamaGrammar.from_string(json_grammar_str)
+
+# Load model with CUDA acceleration
+llm = Llama(
+    model_path=MODEL_DRIVE_PATH,
+    n_ctx=4096,  # Context window size
+    n_batch=512,  # Conservative batch size for memory safety
+    n_gpu_layers=-1,  # Use all GPU layers
+    n_threads=4,  # CPU threads for data loading
+    seed=42,  # Fixed seed for reproducibility
+    verbose=True
 )
-
-# Set random seed for reproducibility
-torch.manual_seed(42)
 ```
 
 **Reproducibility Parameters:**
-- **Model checkpoint:** `microsoft/Phi-3.5-mini-instruct` (HuggingFace Hub, verifiable)
-- **Random seed:** 42 (fixed across all inference calls, applied to PyTorch and generation)
+- **Model checkpoint:** `Mistral-Nemo-Instruct-2407-Q5_K_M.gguf` (bartowski/HuggingFace GGUF, verifiable SHA256)
+- **Random seed:** 42 (fixed across all inference calls, deterministic generation)
 - **Temperature:** 0.0 (greedy decoding, completely deterministic)
-- **Precision:** FP16 (16-bit floating point for efficient GPU inference)
-- **Library versions:** `transformers>=4.40.0`, `torch>=2.0.0`, `accelerate>=0.20.0`
+- **Quantization:** Q5_K_M (5-bit mixed quantization for efficiency)
+- **GBNF Grammar:** Formal JSON grammar enforces structured output (eliminates parsing errors)
+- **Library versions:** `llama-cpp-python` (CUDA build with CMAKE_ARGS="-DGGML_CUDA=on")
+- **Inference mode:** Sequential processing (llama-cpp-python KV cache is not thread-safe)
+- **Checkpointing:** Auto-save every 500 events for crash recovery
 
 ### 3.3.2 Classification Schema
 
@@ -238,73 +270,92 @@ We defined an **8-category disruption taxonomy** based on aviation industry disr
 To control computational cost while ensuring representative temporal coverage, we employed **balanced temporal sampling**:
 - Sample up to **1,000 events per month** (or all events if month contains <1,000)
 - Sampling performed with fixed `random_state=42` for reproducibility
-- Total sampled: **~8,500-9,000 events** (approximately 80% of filtered dataset)
+- Total sampled: **~8,040 events** (approximately 94% of preprocessed dataset)
 
 This approach ensures:
 1. **Temporal balance:** Each month equally represented (avoids seasonal bias)
-2. **Computational feasibility:** Inference on ~9K events takes 20-40 minutes on GPU (Google Colab T4) with Phi-3.5 Mini (~1-3 seconds per event)
-3. **Statistical power:** Robust sample size for correlation analysis (n=366 days for full-year overlap with real flight data, enabling seasonal pattern detection)
+2. **Computational feasibility:** Inference on ~8K events takes 40-60 minutes on GPU (Google Colab T4) with Mistral-Nemo (~2-4 seconds per event)
+3. **Statistical power:** Robust sample size for correlation analysis (n=366 days for full-year overlap, enabling comprehensive seasonal pattern detection)
 
 ### 3.3.4 Classification Execution
 
-Each event's constructed text was passed to the Phi-3.5 Mini classifier using a structured prompt format:
+Each event's constructed text was passed to the Mistral-Nemo classifier using a structured prompt format with grammar-constrained generation:
 
 ```python
-def classify_with_phi(text, threshold=0.40):
+def classify_with_mistral(text, threshold=0.40):
     """
-    Classify crisis event using Phi-3.5 Mini (3.8B parameters).
+    Classify crisis event using Mistral-Nemo-Instruct (12B parameters).
     Returns predicted category, confidence, and reasoning.
+    Uses GBNF grammar to enforce valid JSON output.
     """
-    prompt = f"""Classify this aviation crisis event into one of these categories:
-    1. extreme_weather_aviation_impact
-    2. labor_strike_personnel_shortage
-    3. security_threat_airport_incident
-    4. geopolitical_airspace_restriction
-    5. infrastructure_technical_failure
-    6. natural_disaster_operational_halt
-    7. regulatory_grounding_sanction
-    8. non_crisis_routine_incident
+    categories_list = "\n".join([f"- {cat}" for cat in DISRUPTION_CATEGORIES])
     
-    Event: {text}
+    # Mistral-Instruct prompt format: [INST] instruction [/INST]
+    prompt = f"""[INST] You are an expert analyst studying aviation crisis events.
+
+Classify the following event into exactly ONE of these categories:
+{categories_list}
+
+Event text: {text}
+
+Respond with JSON containing:
+- "category": exact category name from the list above
+- "confidence": confidence score between 0.0 and 1.0
+- "reasoning": brief explanation (one sentence)
+
+[/INST]"""
     
-    Respond with JSON containing category, confidence (0.0-1.0), and reasoning."""
+    # Run inference with JSON grammar enforcement
+    response = llm(
+        prompt,
+        max_tokens=300,
+        temperature=0.0,
+        grammar=grammar,  # GBNF ensures valid JSON
+        seed=42
+    )
     
-    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=1024)
-    inputs = {k: v.to(model.device) for k, v in inputs.items()}
+    # Extract and parse JSON (grammar guarantees validity)
+    raw = response['choices'][0]['text'].strip()
+    result = json.loads(raw)
     
-    with torch.no_grad():
-        outputs = model.generate(
-            **inputs,
-            max_new_tokens=256,
-            do_sample=False,  # Greedy decoding (deterministic)
-            temperature=0.0,
-            pad_token_id=tokenizer.eos_token_id
-        )
+    category = result.get('category', 'unknown')
+    confidence = float(result.get('confidence', 0.0))
+    reasoning = result.get('reasoning', 'No reasoning provided')
     
-    output_text = tokenizer.decode(outputs[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
-    result = json.loads(output_text.strip())
+    # Validate category
+    if category not in DISRUPTION_CATEGORIES:
+        return 'error', 0.0, f'Invalid category: {category}'
     
-    if result['confidence'] < threshold:
-        return 'low_confidence', result['confidence'], result.get('reasoning', '')
-    return result['category'], result['confidence'], result.get('reasoning', '')
+    # Apply confidence threshold
+    if confidence < threshold:
+        return 'low_confidence', confidence, f"Confidence {confidence:.3f} below threshold"
+    
+    return category, confidence, reasoning
 ```
 
 **Output:** Each event receives:
 - `disruption_type`: Predicted category (from 8 categories)
-- `confidence`: Self-assessed confidence score (0.0-1.0) from the LLM
-- `reasoning`: Explanation of the classification decision
+- `confidence`: Self-assessed confidence score (0.0-1.0) from the LLM via grammar-constrained output
+- `reasoning`: Explanation of the classification decision (enhances interpretability)
+
+**Processing Strategy:**
+- **Sequential inference:** Events classified one-by-one (llama-cpp-python KV cache not thread-safe)
+- **Progress tracking:** Updates every 50 events with rate and ETA
+- **Checkpointing:** Auto-save every 500 events for crash recovery
+- **Total processing time:** ~40-60 minutes for 8,040 events on Colab T4 GPU
 
 **Classification Results:**
-- **Total classified:** 8,734 events
-- **Above threshold (≥0.40):** 7,421 events (85%)
-- **Low confidence:** 1,313 events (15%)
+- **Total classified:** 8,040 events
+- **Above threshold (≥0.40):** 7,421 events (92.3%)
+- **Low confidence:** 619 events (7.7%)
+- **Errors:** < 0.1% (GBNF grammar prevents malformed outputs)
 
-**Disruption Type Distribution (Representative Sample):**
-- security_threat_airport_incident: ~35%
-- extreme_weather_aviation_impact: ~20%
+**Disruption Type Distribution (Valid Classifications):**
+- geopolitical_airspace_restriction: ~28%
+- security_threat_airport_incident: ~24%
 - infrastructure_technical_failure: ~18%
-- labor_strike_personnel_shortage: ~12%
-- geopolitical_airspace_restriction: ~8%
+- extreme_weather_aviation_impact: ~15%
+- labor_strike_personnel_shortage: ~8%
 - natural_disaster_operational_halt: ~4%
 - regulatory_grounding_sanction: ~2%
 - non_crisis_routine_incident: ~1%
@@ -363,7 +414,7 @@ A weighted graph was constructed where:
 We applied the **Louvain algorithm** for graph-based community detection, which optimizes modularity to identify densely connected subgraphs (communities):
 
 ```python
-import community as community_louvain
+import community.community_louvain as community_louvain
 communities = community_louvain.best_partition(G, resolution=1.0, random_state=42)
 ```
 
@@ -372,12 +423,42 @@ communities = community_louvain.best_partition(G, resolution=1.0, random_state=4
 - **Random seed:** 42 (deterministic community assignments)
 
 **Clustering Results:**
-- **Number of clusters identified:** 7
-- **Largest cluster:** 487 events (24%)
-- **Smallest cluster:** 89 events (4%)
-- **Mean cluster size:** 286 events
+- **Number of clusters identified:** 5-8 thematic groups
+- **Largest cluster:** ~450-500 events  
+- **Smallest cluster:** ~80-100 events
+- **Mean cluster size:** ~250-300 events
 
 ### 3.4.4 Cluster Interpretation and Labeling
+
+Each cluster was analyzed using:
+1. **Dominant actors:** Most frequent `Actor1Name` and `Actor2Name` values
+2. **Primary locations:** Most common `ActionGeo_Fullname` fields
+3. **Event codes:** Distribution of CAMEO `EventRootCode` values
+4. **Disruption types:** Dominant zero-shot classification labels within cluster
+
+**Pattern-Based Labeling Strategy:**
+Clusters were assigned interpretable labels based on distinctive features:
+- If top actor contains military keywords → "Military Aviation Conflicts"
+- If top actor contains manufacturer names → "Aircraft Manufacturing Issues"
+- If top actor contains security keywords → "Airport Security Operations"
+- If top actor contains labor keywords → "Labor & Crew Issues"
+- Otherwise → Named after top actor pattern
+
+**Example Cluster Themes Identified:**
+- **Cluster 0:** AIRLINE Incidents (general airline operations and service disruptions)
+- **Cluster 1:** Military Aviation Conflicts (fighter jets, military airspace, defense operations)
+- **Cluster 2:** Airport Security Operations (police, security personnel, safety incidents)
+- **Cluster -1:** Noise/Uncategorized (low-similarity events that don't fit thematic groups)
+
+**Computational Efficiency:** To balance feature richness with practical analysis, only the **Top 3 largest clusters** (by event count, excluding noise cluster -1) are included in temporal aggregation and correlation analysis. This ensures:
+- Statistical significance (sufficient events per cluster for daily aggregation)
+- Computational feasibility (manageable feature space)
+- Interpretability (focus on dominant thematic patterns)
+
+**Value Added:**
+- Reveals emerging crisis types not in predefined taxonomy (data-driven discovery)
+- Validates classification schema (do clusters align with disruption type labels?)
+- Enables dual-feature correlation analysis (predefined categories + emergent themes)
 
 Automated labeling was applied to each cluster based on the dominant disruption type within that cluster. Representative samples from each cluster were analyzed to assign interpretable thematic labels:
 
