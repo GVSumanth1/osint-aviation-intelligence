@@ -47,6 +47,7 @@ We utilized **pre-aggregated flight cancellation data** from the Bureau of Trans
 - **Raw Data:** 7,079,081 individual flight records from 2024
 - **Raw File Size:** ~1.2GB (impractical for Google Colab upload)
 - **Pre-aggregation:** Raw flight records aggregated to daily statistics offline
+- **Preprocessing Script:** `Flight_Data_Aggregation_Script.py` (available in repository for reproducibility)
 - **Output File:** `flight_cancellations_daily_2024.csv`
 - **Optimized File Size:** ~20KB (99.98% size reduction while preserving analytical value)
 
@@ -139,6 +140,7 @@ Duplicate events (same Day, EventRootCode, Actor1Name, Actor2Name, ActionGeo_Ful
 - **After aviation filtering:** 10,122 events (keyword matching)
 - **After text validity + dedup:** **8,541 final events**
 - **Overall noise reduction:** 99.97%
+- **Preprocessing Script:** `GDELT_Data_Cleaning_Script.py` (year filtering: 2024 only, available in repository)
 - **Output file:** `gdelt_crisis_aviation_clean.csv` (~5MB, ready for Colab upload)
 
 **Note:** These preprocessing steps were performed offline. The Colab notebook loads `gdelt_crisis_aviation_clean.csv` directly, bypassing raw data processing.

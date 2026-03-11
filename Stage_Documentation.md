@@ -31,6 +31,7 @@ Raw data represents the unprocessed, high-volume information streams that contai
    - **Raw Volume:** ~30 million global events per year
    - **Filtered File:** `gdelt_crisis_aviation_clean.csv` (~5MB)
    - **Filtered Records:** 10,122 aviation-related crisis events (loaded), 8,541 after preprocessing
+   - **Preprocessing:** `GDELT_Data_Cleaning_Script.py` (year filter: 2024 only)
    - **Format:** Structured event records (58 columns)
    - **Content:** Aviation-related crisis events only (pre-filtered from raw GDELT)
    - **Noise Reduction:** 99.96% noise already removed (30M → 10K events)
@@ -40,6 +41,7 @@ Raw data represents the unprocessed, high-volume information streams that contai
    - **File:** `flight_cancellations_daily_2024.csv` (~20KB)
    - **Volume:** 366 daily records (Jan 1 - Dec 31, 2024, full year - leap year)
    - **Original Data:** Aggregated from 7,079,081 raw BTS flight records
+   - **Preprocessing:** `Flight_Data_Aggregation_Script.py` (group by date, calculate rates/spikes)
    - **Format:** Daily operational data (date, total_flights, cancelled_flights, cancellation_rate, is_spike)
    - **Content:** Pre-aggregated U.S. flight operations data from Bureau of Transportation Statistics
    - **Noise Level:** Minimal (all records valid, pre-aggregated at daily level)
